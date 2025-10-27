@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Simple Key Values - Version 0.0.1
+// Simple Key Values - Version 0.0.2
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef SKV_ALLOC
+	#define SKV_ALLOC(x)		malloc(static_cast<size_t>(x))
+#endif
 #ifndef SKV_NEW
-	#define SKV_NEW(x)			reinterpret_cast<x*>(malloc(sizeof(x)))
+	#define SKV_NEW(x)			reinterpret_cast<x*>(SKV_ALLOC(sizeof(x)))
 #endif
 #ifndef SKV_FREE
 	#define SKV_FREE(x)			free(x)
@@ -238,6 +241,10 @@ public:
 	*/
 	bool LoadFromBuffer(char* buf)
 	{
+		if (!buf) {
+			return 0;
+		}
+
 		return RecursiveLoad(this, buf, 0);
 	}
 };
@@ -256,8 +263,34 @@ public:
 		}
 	}
 
+	bool LoadFromFile(const char* filename)
+	{
+		auto file = fopen(filename, "r");
+		if (!file) {
+			return 0;
+		}
+
+		fseek(file, 0, SEEK_END);
+
+		size_t size = static_cast<size_t>(ftell(file));
+		char* buf = static_cast<char*>(SKV_ALLOC(size));
+		if (buf)
+		{
+			fseek(file, 0, SEEK_SET);
+			fread(buf, 1, size, file);
+		}
+
+		fclose(file);
+
+		return LoadFromBuffer(buf);
+	}
+
 	bool LoadFromBuffer(char* buf)
 	{
+		if (!buf) {
+			return 0;
+		}
+
 		mBuffer = buf;
 
 		return RecursiveLoad(this, buf, 0);

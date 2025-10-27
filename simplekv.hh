@@ -1,8 +1,20 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// Simple Key Values - Version 0.0.1
+//
+///////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define SKV_NEW(x)			reinterpret_cast<x*>(malloc(sizeof(x)))
-#define SKV_FREE(x)			free(x)
+#ifndef SKV_NEW
+	#define SKV_NEW(x)			reinterpret_cast<x*>(malloc(sizeof(x)))
+#endif
+#ifndef SKV_FREE
+	#define SKV_FREE(x)			free(x)
+#endif
 
 class qSimpleKV
 {
@@ -30,7 +42,7 @@ public:
 		return 0;
 	}
 
-private:
+protected:
 	qSimpleKV* CreateKeyValue()
 	{
 		auto kv = SKV_NEW(qSimpleKV);
@@ -226,6 +238,28 @@ public:
 	*/
 	bool LoadFromBuffer(char* buf)
 	{
+		return RecursiveLoad(this, buf, 0);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class qSimpleKVBuffer : public qSimpleKV
+{
+public:
+	void* mBuffer = 0;
+
+	~qSimpleKVBuffer()
+	{
+		if (mBuffer) {
+			SKV_FREE(mBuffer);
+		}
+	}
+
+	bool LoadFromBuffer(char* buf)
+	{
+		mBuffer = buf;
+
 		return RecursiveLoad(this, buf, 0);
 	}
 };
